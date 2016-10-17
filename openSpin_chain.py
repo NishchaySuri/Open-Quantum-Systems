@@ -12,6 +12,7 @@ import scipy.stats
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import random as rnd
 
 
 # Set up a Class to compute Hamiltonian for a N atom spin chain with 2^N basis vectors.
@@ -68,7 +69,8 @@ class SetUpEquation:
     '''
     # Initializes the density column matrix
     def Psi_Init(self):
-        self.Psi[0,:] = 1
+        for i in range(0,self.num_basis**2):
+            self.Psi[0][i] = rnd.random()
         return(0)
 
 
@@ -83,6 +85,7 @@ class SetUpEquation:
             array = np.roll(array,1)
             
         return(matrix)
+
 
     # Takes input as an array and generates 2^N dim. sigma matrix by taking the tensor product.
 
@@ -231,7 +234,35 @@ class SetUpEquation:
 
     is converted to rho' = [r11,r12,r13.......,r21,r22,r23,......,rN1,rN2,rN3......rNN].
     other operators like [rho,H] and L(rho) are modified accordingly.
+
     '''
+
+   # Takes a column Density matrix and returns square Density Matrix
+    def Column_2_Matrix(self,column):
+        matrix = np.zeros((self.num_basis,self.num_basis),dtype='complex')
+        r=0
+        col=0
+        for c in range(0,self.num_basis**2):
+
+            if(c!=0 and c%self.num_basis == 0):
+                r += 1
+                col = 0
+                
+            matrix[r][col] = column[c]
+            col += 1
+            
+        return(matrix)
+    
+    # Takes a square Density matrix and returns Column Density Matrix
+    def Matrix_2_Column(self,Matrix):
+        column = np.zeros((self.num_basis**2,),dtype='complex')
+        count = 0
+        for r in range(0,self.num_basis):
+            for c in range(0,self.num_basis):
+                column[count] = Matrix[r][c]
+                count += 1
+        return(column)
+
 
     # Converts [rho,M] to the column matrix form ----> L rho
     def commutator_2_Matrix(self,M):
@@ -281,7 +312,7 @@ class SetUpEquation:
     def Lindblad(self,M1): # Lindblad operator (rho) = M1 rho M1* - 0.5(M1* M1 rho + rho M1* M1)
 
         M2 = np.conjugate(np.transpose(M1))
-        _Lindblad = self.Op1_rho_Op2(M1,M2) - 0.5 * (self.Op_action_rho(M2*M1) + self.rho_action_Op(M2*M1))
+        _Lindblad = self.Op1_rho_Op2(M1,M2) - 0.5 * (self.Op_action_rho(np.dot(M2,M1)) + self.rho_action_Op(np.dot(M2,M1)))
 
         return(_Lindblad)
 
@@ -358,7 +389,7 @@ class SetUpEquation:
     
 
 if __name__ == '__main__':
-    s = SetUpEquation(2,0,0,0,0,0,0,100,100)
+    s = SetUpEquation(2,1,4.54e-05,1,0,0,0,2*np.pi,1000)
     s.Evolution()
 
 
