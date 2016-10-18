@@ -12,8 +12,7 @@ import scipy.stats
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import random as rnd
-
+import numpy.random as rnd
 
 # Set up a Class to compute Hamiltonian for a N atom spin chain with 2^N basis vectors.
 
@@ -67,10 +66,21 @@ class SetUpEquation:
     INITIALIZATION
 
     '''
+    # Initializes the density Matrix 
+    def rho_Init(self):
+        Z = rnd.rand(self.num_basis,self.num_basis) + 1.j * rnd.rand(self.num_basis,self.num_basis)
+        Z_dagger = np.transpose(np.conjugate(Z))
+
+        trace = np.trace(np.dot(Z,Z_dagger))
+
+        rho = np.dot(Z,Z_dagger) / trace
+
+        return(rho)
+        
+    
     # Initializes the density column matrix
     def Psi_Init(self):
-        for i in range(0,self.num_basis**2):
-            self.Psi[0][i] = rnd.random()
+        self.Psi[0][:] = self.Matrix_2_Column(self.rho_Init())
         return(0)
 
 
@@ -141,15 +151,21 @@ class SetUpEquation:
 
     # Input String as + or - to produce Sigma+ = sigmaX + i sigmaY and Sigma = sigmaX - i sigmaY
     def sigma_PlusMinus(self,string):
-        array = np.ones((self.N,))
+        array = np.zeros((self.N,))
+        array[0] = 1
         
-        sigmaX = self.Generate_Matrix(array,'sigmaX')
-        sigmaY = self.Generate_Matrix(array,'sigmaY')
+        sigmaX = np.zeros((self.num_basis,self.num_basis),dtype='complex')
+        sigmaY = np.zeros((self.num_basis,self.num_basis),dtype='complex')
+
+        for i in range(0,self.N):
+            sigmaX += self.Generate_Matrix(array,'sigmaX')
+            sigmaY += self.Generate_Matrix(array,'sigmaY')
+            array = np.roll(array,1)
 
         if string == '+':
-            sigma = sigmaX + 1.j * sigmaY
+            sigma = 0.5*(sigmaX + 1.j * sigmaY)
         elif string == '-':
-            sigma = sigmaX - 1.j * sigmaY
+            sigma = 0.5*(sigmaX - 1.j * sigmaY)
 
         return(sigma)
 
@@ -387,9 +403,8 @@ class SetUpEquation:
 
 
     
-
 if __name__ == '__main__':
-    s = SetUpEquation(2,1,4.54e-05,1,0,0,0,2*np.pi,1000)
+    s = SetUpEquation(2,1,.99,1,0,0,0,5,1000)
     s.Evolution()
 
 
