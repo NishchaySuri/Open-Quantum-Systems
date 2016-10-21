@@ -333,10 +333,17 @@ class SetUpEquation:
         return(_Lindblad)
 
     def Lindblad_Thermal(self): # Lindblad_Thermal = L(sqrt(2 k (1+n) sigma-)) + L(sqrt(2 k n sigma+))
-        sigmaMinus = self.sigma_PlusMinus('-')
-        sigmaPlus = self.sigma_PlusMinus('+')
-            
-        _L_thermal = self.Lindblad(np.sqrt(2*self.k*(1+self.n_bar)) * sigmaMinus) +  self.Lindblad(np.sqrt(2*self.k*self.n_bar) * sigmaPlus)
+
+        array = np.zeros((self.N,))
+        array[0] = 1
+        _L_thermal = 0
+        
+        for i in range(0,self.N):
+            sigmaPlus = self.Generate_Matrix(array,'sigmaX') + 1.j * self.Generate_Matrix(array,'sigmaY')
+            sigmaMinus = self.Generate_Matrix(array,'sigmaX') - 1.j * self.Generate_Matrix(array,'sigmaY')
+            _L_thermal += ( self.Lindblad(np.sqrt(2*self.k*(1+self.n_bar)) * sigmaMinus) +  self.Lindblad(np.sqrt(2*self.k*self.n_bar) * sigmaPlus) )
+            array = np.roll(array,1)
+        
 
         return(_L_thermal)
 
@@ -404,7 +411,7 @@ class SetUpEquation:
 
     
 if __name__ == '__main__':
-    s = SetUpEquation(2,1,.99,1,0,0,0,5,1000)
+    s = SetUpEquation(2,1,1,1,0,0,0,5,1000)
     s.Evolution()
 
 
