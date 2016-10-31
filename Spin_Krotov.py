@@ -54,10 +54,10 @@ class SetUpEquation:
         self.Chi = np.zeros((self.num_t, self.num_basis**2), dtype='complex')
 
      # Defining Ex(t) and Ez(t).
-        self.Ex = np.ones((self.num_t,))
-        self.Ez = np.ones((self.num_t,))
-        self.Ex_tilda = np.ones((self.num_t,))
-        self.Ez_tilda = np.ones((self.num_t,))
+        self.Ex = 10*rnd.rand(self.num_t)
+        self.Ez = 10*rnd.rand(self.num_t)
+        self.Ex_tilda = 10*rnd.rand(self.num_t)
+        self.Ez_tilda = 10*rnd.rand(self.num_t)
 
      # Time Independent Part.    
         self._H0 = self.H0()
@@ -371,7 +371,7 @@ class SetUpEquation:
     # Returns O|Psi(t)> Overlap is wrt to |111..> All spin up state at time T
     def O(self,ket):
         Opsi = np.zeros((self.num_basis**2,) ,dtype='complex')
-        Opsi[self.num_basis**2-1] = 1
+        Opsi[self.num_basis**2-1] = ket[self.num_basis**2-1]
         return(Opsi)
 
     # Returns the Overlap <Psi|O|Psi> i.e. the Prob. of |1111...> State        
@@ -402,7 +402,7 @@ class SetUpEquation:
         # Commutator [muZ,H0 + muX*Ex(t)]
         _commutator = self.Op_action_rho(np.dot(self._Col_muZ,_H)) - self.Op_action_rho(np.dot(_H,self._Col_muZ))
         
-        ket_new = np.dot(self._Col_muX,ket) - (self.dt/2) * np.dot(_commutator,ket)
+        ket_new = np.dot(self._Col_muZ,ket) - (self.dt/2) * np.dot(_commutator,ket)
 
         _Zpart2 = np.real(np.vdot(bra, ket_new)) * (self.eta / self.alpha)
 
@@ -520,6 +520,7 @@ class SetUpEquation:
 
     def Krotov(self,num_iter):
         T = self.num_t-1
+        self._overlap = []
         self.Evolution_Psi()
 
         for i in range(0,num_iter):
@@ -528,6 +529,8 @@ class SetUpEquation:
             self.Evolution_Chi()
 
             self.Evolution_Psi()
+            
+            self._overlap.append(self.Overlap())
     
 
     
@@ -536,7 +539,7 @@ if __name__ == '__main__':
     
     s.Evolution_Psi() # Thermal State 
 
-    k = SetUpEquation(2,1,1,1,1,2,0,10,1000)
+    k = SetUpEquation(2,1,1,1,.1,0.1,0,100,1000)
 
     k.Psi[0] = s.Psi[s.num_t-1] # Set Initial State of Krotov as Thermalised State
 
@@ -544,21 +547,6 @@ if __name__ == '__main__':
 
     k.Krotov(10)
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
