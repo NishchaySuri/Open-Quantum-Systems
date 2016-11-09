@@ -561,10 +561,19 @@ class SetUpEquation:
         prod = np.dot(matrix, self.H_new())
         trace = np.trace(prod)
         return(trace)
-        
+
+    def Work(self,t):
+        self.t_index = t
+        matrix = self.Column_2_Matrix(self.Psi[self.t_index])
+        trace = np.trace(np.dot(matrix,self._muX))
+
+        epsilon_dot = (self.Ex[self.t_index+1] - self.Ex[self.t_index] )/(self.t[1]-self.t[0])
+
+        return(epsilon_dot*trace)
+
     
 if __name__ == '__main__':
-    s = SetUpEquation(1,0.01,2.,0.01,0,0,0,20,1000)
+    s = SetUpEquation(1,0.01,2.,0.01,0,0,0,40,1000)
 
     a=[]
 
@@ -588,7 +597,7 @@ if __name__ == '__main__':
     plt.ylabel('Overlap')
     plt.xlabel('Time')
     plt.plot(s.t,a)
-    plt.plot(s.t,b)
+    plt.plot(s.t,b,'r')
         
     heat1=[]
     heat2=[]
@@ -602,14 +611,28 @@ if __name__ == '__main__':
     plt.ylabel('Heat')
     plt.xlabel('Time')
     plt.plot(s.t,heat1)
-    plt.plot(s.t,heat2)
+    plt.plot(s.t,heat2,'r')
 
     plt.figure(3)
     plt.title('Epsilon Vs Time')
     plt.ylabel('Epsilon')
     plt.xlabel('Time')
     plt.plot(s.t,k.Ex)
+
+    work1 = []
+    work2 = []
     
+    for i in range(0,len(s.t)-1):
+        work1.append(s.Work(i))
+        work2.append(k.Work(i))
+        
+    plt.figure(4)
+    plt.title('Work Vs Time')
+    plt.ylabel('Work')
+    plt.xlabel('Time')
+    plt.plot(work1)
+    plt.plot(work2,'r')
+
     
 
     plt.show()
